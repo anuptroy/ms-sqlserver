@@ -1,0 +1,27 @@
+Solution:
+
+SELECT @@VERSION AS 'SQL Server Version';
+
+ALTER DATABASE PerformancePoint Service Application_4289874e1cc647ea8589b83a9ce238f6 SET PARTNER OFF;
+
+ALTER DATABASE Bdc_Service_DB_87df1d093e9f4f33a201ad3b7944fdc3 SET PARTNER OFF;
+
+ALTER DATABASE "PerformancePoint Service Application_4289874e1cc647ea8589b83a9ce238f6" SET PARTNER OFF;
+
+ALTER DATABASE "SharePoint_AdminContent_99ba14eb-f480-4c30-9fad-9b39eb3dd606" SET PARTNER OFF;
+
+ALTER DATABASE "spServiceApp-AppMgmt" SET PARTNER OFF;
+
+ALTER DATABASE "spServiceApp92-UPProfile" SET PARTNER OFF;
+
+ALTER DATABASE "spServiceApp92-UPSocial" SET PARTNER OFF;
+
+
+ALTER DATABASE "spServiceApp-Subscription" SET PARTNER OFF;
+
+
+ALTER DATABASE "Sync_5ad385b1-c9c7-4c0f-b6b8-4beb69a80d77 DB" SET PARTNER OFF;
+
+ALTER DATABASE "TranslationService_c7f431a80bae4a78a814eafa4a58a5ab" SET PARTNER OFF;
+
+# https://docs.microsoft.com/en-us/sql/database-engine/database-mirroring/remove-database-mirroring-sql-server?view=sql-server-2017 
