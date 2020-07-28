@@ -1,0 +1,26 @@
+Estimation :
+
+After antivirus scan completion the above problems occurs as per event logs:
+
+Checked Antivirus the below mention folders were not in exception.
+
+Thus as per article added those path in exclusions and hopefully this datasbe switching issue wont occur.
+
+In article they have cleary mention the following point 
+"If these folders are not excluded, you may see unexpected behaviour. For example, you may receive access denied" error messages when files are uploaded."
+
+Exclusion:
+C:\Program Files\Common Files\Microsoft Shared\Web Server Extensions\16
+C:\Program Files\Common Files\Microsoft Shared\Web Server Extensions\16\Logs
+C:\Program Files\Microsoft Office Servers\16.0\Data\Office Server\Applications
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\Config
+C:\Users\ServiceAccount\AppData\Local\Temp\WebTempDir
+C:\ProgramData\Microsoft\SharePoint
+C:\Users\account that the search service is running as\AppData\Local\Temp
+C:\WINDOWS\System32\LogFiles
+C:\Windows\Syswow64\LogFiles
+C:\Users\ServiceAccount\AppData\Local\Temp
+C:\Users\Default\AppData\Local\Temp
+
+https://support.microsoft.com/en-us/office/certain-folders-may-have-to-be-excluded-from-antivirus-scanning-when-you-use-file-level-antivirus-software-in-sharepoint-01cbc532-a24e-4bba-8d67-0b1ed733a3d9?ui=en-us&rs=en-us&ad=us
