@@ -1,0 +1,424 @@
+ist of IMP SQL Queries that could be handy, we will discuss these shortly.
+ 
+Save them for your reference & use it with “with NOLOCk”
+ 
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+A List of SQL Queries
+•Top 100 documents in terms of size (latest version(s) only): SELECT TOP 100 Webs.FullUrl As SiteUrl, 
+Webs.Title 'Document/List Library Title', 
+DirName + '/' + LeafName AS 'Document Name',
+CAST((CAST(CAST(Size as decimal(10,2))/1024 As 
+      decimal(10,2))/1024) AS Decimal(10,2)) AS 'Size in MB'
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 AND (LeafName NOT LIKE '%.stp')  
+               AND (LeafName NOT LIKE '%.aspx') 
+               AND (LeafName NOT LIKE '%.xfp') 
+               AND (LeafName NOT LIKE '%.dwp') 
+               AND (LeafName NOT LIKE '%template%') 
+               AND (LeafName NOT LIKE '%.inf') 
+               AND (LeafName NOT LIKE '%.css') 
+ORDER BY 'Size in MB' DESC
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•Top 100 most versioned documents: SELECT TOP 100
+Webs.FullUrl As SiteUrl, 
+Webs.Title 'Document/List Library Title', 
+DirName + '/' + LeafName AS 'Document Name',
+COUNT(Docversions.version)AS 'Total Version',
+SUM(CAST((CAST(CAST(Docversions.Size as decimal(10,2))/1024 As 
+   decimal(10,2))/1024) AS Decimal(10,2)) )  AS  'Total Document Size (MB)',
+CAST((CAST(CAST(AVG(Docversions.Size) as decimal(10,2))/1024 As 
+   decimal(10,2))/1024) AS Decimal(10,2))   AS  'Avg Document Size (MB)'
+FROM Docs INNER JOIN DocVersions ON Docs.Id = DocVersions.Id 
+   INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 
+AND (LeafName NOT LIKE '%.stp')  
+AND (LeafName NOT LIKE '%.aspx')  
+AND (LeafName NOT LIKE '%.xfp') 
+AND (LeafName NOT LIKE '%.dwp') 
+AND (LeafName NOT LIKE '%template%') 
+AND (LeafName NOT LIKE '%.inf') 
+AND (LeafName NOT LIKE '%.css') 
+GROUP BY Webs.FullUrl, Webs.Title, DirName + '/' + LeafName
+ORDER BY 'Total Version' desc, 'Total Document Size (MB)' desc
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+ 
+•List of unhosted pages in the SharePoint solution: select Webs.FullUrl As SiteUrl, 
+case when [dirname] = '' 
+then '/'+[leafname] 
+else '/'+[dirname]+'/'+[leafname] 
+end as [Page Url], 
+CAST((CAST(CAST(Size as decimal(10,2))/1024 As 
+   decimal(10,2))/1024) AS Decimal(10,2))   AS  'File Size in MB'
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+where [type]=0 
+and [leafname] like ('%.aspx') 
+and [dirname] not like ('%_catalogs/%') 
+and [dirname] not like ('%/Forms') 
+and [content] is not null 
+and [dirname] not like ('%Lists/%') 
+and [setuppath] is not null 
+order by [Page Url];
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of top level WSS sites and their total size, including child sites in the portal: select FullUrl As SiteUrl,  
+CAST((CAST(CAST(DiskUsed as decimal(10,2))/1024 As 
+   decimal(10,2))/1024) AS Decimal(10,2))   AS  'Total Size in MB'
+from sites 
+Where FullUrl LIKE '%sites%' AND 
+   fullUrl <> 'MySite' AND fullUrl <> 'personal'
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of portal area and total number of users: select webs.FullUrl, Webs.Title, 
+    COUNT(WebMembers.UserId) As 'Total User'
+from Webs INNER JOIN WebMembers 
+ON Webs.Id = WebMembers.WebId
+Where fullurl NOT like '%sites%' AND 
+    fullUrl <> 'MySite' AND fullUrl <> 'personal'
+Group BY webs.FullUrl,  Webs.Title
+Order By  'Total User' desc
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of top level and sub sites in the portal and the number of users: select  webs.FullUrl ,Webs.Title, COUNT(WebMembers.UserId) As 'Total User'
+from Webs INNER JOIN WebMembers 
+ON Webs.Id = WebMembers.WebId
+where fullurl  like '%sites%' AND fullUrl <> 'MySite' AND fullUrl <> 'personal'
+Group BY webs.FullUrl,  Webs.Title
+Order By  'Total User' desc
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of all portal area: select Webs.FullUrl As [Site Url], 
+Title AS [Area Title]
+from Webs 
+Where fullurl NOT like '%sites%' AND fullUrl <> 
+    'MySite' AND fullUrl <> 'personal'
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of the total portal area: select COUNT(*)from Webs 
+Where fullurl NOT like '%sites%' AND 
+    fullUrl <> 'MySite' AND fullUrl <> 'personal'
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of all top level and sub sites in the portal: select Webs.FullUrl As [Site Url], 
+Title AS [WSS Site Title]
+from webs
+where fullurl  like '%sites%' AND fullUrl <> 
+     'MySite' AND fullUrl <> 'personal'
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of the total top level and sub sites in the portal: select COUNT(*) from webs
+where fullurl  like '%sites%' AND fullUrl <> 
+    'MySite'  AND fullUrl <> 'personal'
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of all list/document libraries and total items: select  
+case when webs.fullurl = '' 
+then 'Portal Site' 
+else webs.fullurl
+end as [Site Relative Url], 
+webs.Title As [Site Title], 
+case tp_servertemplate
+when 104 then 'Announcement'
+when 105 then 'Contacts'
+When 108 then 'Discussion Boards'
+when 101 then 'Docuemnt Library'
+when 106 then 'Events'
+when 100 then 'Generic List'
+when 1100 then 'Issue List'
+when 103 then 'Links List'
+when 109 then 'Image Library'
+when 115 then 'InfoPath Form Library'
+when 102 then 'Survey'
+when 107 then 'Task List'
+else 'Other' end as Type,
+tp_title 'Title', 
+tp_description As Description, 
+tp_itemcount As [Total Item]
+from lists inner join webs ON lists.tp_webid = webs.Id
+Where tp_servertemplate IN (104,105,108,101, 
+    106,100,1100,103,109,115,102,107,120)
+order by tp_itemcount desc
+===========================================================================================================================================================
+ 
+Note: the tp_servertemplate field can have the following values:
+◦104  = Announcement 
+◦105 = Contacts List 
+◦108 = Discussion Boards 
+◦101 = Document Library 
+◦106 = Events 
+◦100 = Generic List 
+◦1100 = Issue List 
+◦103 = Links List 
+◦109 = Image Library 
+◦115 = InfoPath Form Library 
+◦102 = Survey List 
+◦107 = Task List 
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of document libraries and total items: select  
+case when webs.fullurl = '' 
+then 'Portal Site' 
+else webs.fullurl
+end as [Site Relative Url], 
+webs.Title As [Site Title], 
+lists.tp_title As Title,
+tp_description As Description, 
+tp_itemcount As [Total Item]
+from lists inner join webs ON lists.tp_webid = webs.Id
+Where tp_servertemplate = 101
+order by tp_itemcount desc
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of image libraries and total items: select case when webs.fullurl = '' 
+then 'Portal Site' 
+else webs.fullurl
+end as [Site Relative Url], 
+webs.Title As [Site Title], 
+lists.tp_title As Title,
+tp_description As Description, 
+tp_itemcount As [Total Item]
+from lists inner join webs ON lists.tp_webid = webs.Id
+Where tp_servertemplate = 109  -- Image Library
+order by tp_itemcount desc
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of announcement list and total items: select case when webs.fullurl = '' 
+then 'Portal Site' 
+else webs.fullurl
+end as [Site Relative Url], 
+webs.Title As [Site Title], 
+lists.tp_title As Title,
+tp_description As Description, 
+tp_itemcount As [Total Item]
+from lists inner join webs ON lists.tp_webid = webs.Id
+Where tp_servertemplate = 104  -- Announcement List
+order by tp_itemcount desc
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of contact list and total items: select case when webs.fullurl = '' 
+then 'Portal Site' 
+else webs.fullurl
+end as [Site Relative Url], 
+webs.Title As [Site Title], 
+lists.tp_title As Title,
+tp_description As Description, 
+tp_itemcount As [Total Item]
+from lists inner join webs ON lists.tp_webid = webs.Id
+Where tp_servertemplate = 105   -- Contact List
+order by tp_itemcount desc
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of event list and total items: select case when webs.fullurl = '' 
+then 'Portal Site' 
+else webs.fullurl
+end as [Site Relative Url], 
+webs.Title As [Site Title], 
+lists.tp_title As Title,
+tp_description As Description, 
+tp_itemcount As [Total Item]
+from lists inner join webs ON lists.tp_webid = webs.Id
+Where tp_servertemplate = 106   -- Event List
+order by tp_itemcount desc
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of all tasks and total items: select  
+case when webs.fullurl = '' 
+then 'Portal Site' 
+else webs.fullurl
+end as [Site Relative Url], 
+webs.Title As [Site Title], 
+lists.tp_title As Title,
+tp_description As Description, 
+tp_itemcount As [Total Item]
+from lists inner join webs ON lists.tp_webid = webs.Id
+Where tp_servertemplate = 107  -- Task List
+order by tp_itemcount desc
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of all InfoPath form library and total items: select  
+case when webs.fullurl = '' 
+then 'Portal Site' 
+else webs.fullurl
+end as [Site Relative Url], 
+webs.Title As [Site Title], 
+lists.tp_title As Title,
+tp_description As Description, 
+tp_itemcount As [Total Item]
+from lists inner join webs ON lists.tp_webid = webs.Id
+Where tp_servertemplate = 115  -- Infopath Library
+order by tp_itemcount desc
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•List of generic list and total items: select  
+case when webs.fullurl = '' 
+then 'Portal Site' 
+else webs.fullurl
+end as [Site Relative Url], 
+webs.Title As [Site Title], 
+lists.tp_title As Title,
+tp_description As Description, 
+tp_itemcount As [Total Item]
+from lists inner join webs ON lists.tp_webid = webs.Id
+Where tp_servertemplate = 100  -- Generic List
+order by tp_itemcount desc
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•Total number of documents: SELECT COUNT(*)
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 AND (LeafName NOT LIKE '%.stp')  
+               AND (LeafName NOT LIKE '%.aspx') 
+               AND (LeafName NOT LIKE '%.xfp') 
+               AND (LeafName NOT LIKE '%.dwp') 
+               AND (LeafName NOT LIKE '%template%') 
+               AND (LeafName NOT LIKE '%.inf') 
+               AND (LeafName NOT LIKE '%.css')
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•Total MS Word documents: SELECT count(*)
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 AND (LeafName LIKE '%.doc') 
+  AND (LeafName NOT LIKE '%template%')
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•Total MS Excel documents: SELECT count(*)
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 AND (LeafName LIKE '%.xls') 
+    AND  (LeafName NOT LIKE '%template%')
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•Total MS PowerPoint documents: SELECT count(*)
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 AND (LeafName LIKE '%.ppt') 
+    AND  (LeafName NOT LIKE '%template%')
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•Total TXT documents: SELECT count(*)
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 AND (LeafName LIKE '%.txt')  
+    AND  (LeafName NOT LIKE '%template%')
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•Total Zip files: SELECT count(*)
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 AND (LeafName LIKE '%.zip') 
+    AND  (LeafName NOT LIKE '%template%')
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•Total PDF files: SELECT count(*)
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 AND (LeafName LIKE '%.pdf') 
+    AND  (LeafName NOT LIKE '%template%')
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•Total JPG files: SELECT count(*)
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 AND (LeafName LIKE '%.jpg') 
+               AND  (LeafName NOT LIKE '%template%')
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•Total GIF files: SELECT count(*)
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 AND (LeafName LIKE '%.gif') 
+               AND  (LeafName NOT LIKE '%template%')
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•Total files other than DOC, PDF, XLS, PPT, TXT, Zip, ASPX, DEWP, STP, CSS, JPG, GIF: SELECT count(*)
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 AND (LeafName NOT LIKE '%.pdf') 
+AND  (LeafName NOT LIKE '%template%')
+AND (LeafName NOT LIKE '%.doc')
+AND (LeafName NOT LIKE '%.xls')
+AND (LeafName NOT LIKE '%.ppt')
+AND (LeafName NOT LIKE '%.txt')
+AND (LeafName NOT LIKE '%.zip')
+AND (LeafName NOT LIKE '%.aspx')
+AND (LeafName NOT LIKE '%.dwp')
+AND (LeafName NOT LIKE '%.stp')
+AND (LeafName NOT LIKE '%.css')
+AND (LeafName NOT LIKE '%.jpg')  
+AND (LeafName NOT LIKE '%.gif')  
+AND (LeafName <>'_webpartpage.htm')
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+•Total size of all documents: SELECT SUM(CAST((CAST(CAST(Size as decimal(10,2))/1024 
+       As decimal(10,2))/1024) AS Decimal(10,2))) 
+       AS  'Total Size in MB'
+FROM     Docs INNER JOIN Webs On Docs.WebId = Webs.Id
+INNER JOIN Sites ON Webs.SiteId = SItes.Id
+WHERE
+Docs.Type <> 1 AND (LeafName NOT LIKE '%.stp') 
+               AND (LeafName NOT LIKE '%.aspx') 
+               AND (LeafName NOT LIKE '%.xfp') 
+               AND (LeafName NOT LIKE '%.dwp') 
+               AND (LeafName NOT LIKE '%template%') 
+               AND (LeafName NOT LIKE '%.inf') 
+               AND (LeafName NOT LIKE '%.css') 
+               AND (LeafName <>'_webpartpage.htm')
+ 
+===========================================================================================================================================================
+===========================================================================================================================================================
+ 
+ 
+References
+==================================================
+(Transact-SQL) - Table
+https://docs.microsoft.com/en-us/sql/t-sql/queries/hints-transact-sql-table
+ 
+SQL Server NOLOCK Hint & other poor ideas.
+https://blogs.msdn.microsoft.com/davidlean/2009/04/05/sql-server-nolock-hint-other-poor-ideas/
