@@ -1,0 +1,4 @@
+Select Master DB and execute below query
+
+select *  from 
+sys.dm_db_missing_index_details
